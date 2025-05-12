@@ -816,6 +816,20 @@ def "nu-complete worktree list" [] {
   ^git worktree list | to text | parse --regex '(?P<value>\S+)\s+(?P<commit>\w+)\s+(?P<description>\S.*)'
 }
 
+# organise details of each worktree in Nushell table format
+export def "git worktree table" [
+  --help(-h)            # display the help message for this command
+  --verbose(-v)         # show extended annotations and reasons, if available
+] {
+  if $verbose {
+    ^git worktree list --verbose | to text |
+      parse --regex '(?P<value>\S+)\s+(?P<commit>\w+)\s+(?P<description>\S.*)'
+  } else {
+    ^git worktree list | to text |
+      parse --regex '(?P<value>\S+)\s+(?P<commit>\w+)\s+(?P<description>\S.*)'
+  }
+}
+
 # prevent a working tree from being pruned
 export extern "git worktree lock" [
   worktree: string@"nu-complete worktree list"
