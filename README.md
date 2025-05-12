@@ -2,22 +2,12 @@
 
 This is a place to share Nushell scripts with each other. If you'd like to share your scripts, fork this repository, and [create a PR](https://github.com/nushell/nu_scripts/compare) that adds it to the repo.
 
-## Fork README
+## Branch README
 
-This repository is a fork from the [`nushell/nu_scripts`][upstream] repository
-housing external scripts to enhance the Nushell experience.
-
-Commits on this fork may be rebased onto any future upstream commits that
-do not cause major conflicts with pre-existing downstream modifications.
-
-### Current Dev Branches
-
-- [`complete-git-functions`][complete-git-functions]:
-  Git Custom Completions New Functionalities
-- [`complete-bat-flags`][complete-bat-flags]:
-  bat Custom Completions Flags Update
-- [`complete-winget-locale`][complete-winget-locale]:
-  WinGet Custom Completions Locale Adaptation
+This branch adds a new function to the [custom completions script for Git][1]
+that uses a tabular data structure to list Git worktrees.
+The motivation of this function is the `nu-complete worktree list` helper
+function used for worktree auto-completion.
 
 ## Sections
 
@@ -40,7 +30,4 @@ You can run nushell scripts in a few different ways.
 1. You can type `nu <script name>`.
 2. From with nushell, you can type `source <script name>` and if the script is just a bunch of commands it will run the script. If the script is a custom command it will load those custom commands into your current scope so you can run them like any other command.
 
-[upstream]: https://github.com/nushell/nu_scripts
-[complete-git-functions]: https://github.com/thekpaul/nu_scripts/tree/complete-git-functions
-[complete-bat-flags]: https://github.com/thekpaul/nu_scripts/tree/complete-bat-flags
-[complete-winget-locale]: https://github.com/thekpaul/nu_scripts/tree/complete-winget-locale
+[1]: https://github.com/nushell/nu_scripts/blob/main/custom-completions/git/git-completions.nu
