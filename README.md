@@ -8,6 +8,13 @@ If you'd like to share your scripts _upstream_, fork this repository and
 > [!NOTE]
 > Forked from (and following) [`nushell/nu_scripts`][upstream]
 
+## Branch README
+
+This branch adds a new function to the [custom completions script for Git][1]
+that uses a tabular data structure to list Git worktrees.
+The motivation of this function is the `nu-complete worktree list` helper
+function used for worktree auto-completion.
+
 ## Fork README
 
 This repository is my personal fork from the [`nushell/nu_scripts`][upstream]
@@ -73,3 +80,5 @@ You can run nushell scripts in a few different ways.
 [up_PR]: https://github.com/nushell/nu_scripts/compare
 [fork]: https://github.com/thekpaul/nu_scripts
 [sparse-checkout]: https://git-scm.com/docs/git-sparse-checkout
+
+[1]: ./custom-completions/git/git-completions.nu
