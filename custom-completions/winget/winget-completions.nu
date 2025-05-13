@@ -84,7 +84,7 @@ def "nu-complete winget parse table" [lines: any] {
     let header = (
         $lines 
         | first
-        | parse -r '(?P<name>Name\s+)(?P<id>Id\s+)(?P<version>Version\s+)?(?P<match>Match\s+)?(?P<available>Available\s+)?(?P<source>Source\s*)?'
+        | parse -r '(?P<name>이름\s+)(?P<id>장치 ID\s+)(?P<version>버전\s+)?(?P<match>일치\s+)?(?P<available>사용 가능\s+)?(?P<source>원본\s*)?'
         | first
     )
     let lengths = {
