@@ -14,10 +14,17 @@ do not cause major conflicts with pre-existing downstream modifications.
 
 - [`complete-git-functions`][complete-git-functions]:
   Git Custom Completions New Functionalities
+  - New function `git worktree table` (commit [`c60cd5b`][c60cd5b])
 - [`complete-bat-flags`][complete-bat-flags]:
   bat Custom Completions Flags Update
 - [`complete-winget-locale`][complete-winget-locale]:
   WinGet Custom Completions Locale Adaptation
+
+### Forked Main Branch Changelog
+
+- 14 May 2025
+  - `git worktree table` function for **Git** from commit [`c60cd5b`][c60cd5b]
+    on branch [`complete-git-functions`][complete-git-functions].
 
 ## Sections
 
@@ -44,3 +51,5 @@ You can run nushell scripts in a few different ways.
 [complete-git-functions]: https://github.com/thekpaul/nu_scripts/tree/complete-git-functions
 [complete-bat-flags]: https://github.com/thekpaul/nu_scripts/tree/complete-bat-flags
 [complete-winget-locale]: https://github.com/thekpaul/nu_scripts/tree/complete-winget-locale
+
+[c60cd5b]: https://github.com/thekpaul/nu_scripts/commit/c60cd5bea765a52fd36cd46598bb2b02109e8b63
