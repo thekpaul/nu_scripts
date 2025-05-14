@@ -17,6 +17,8 @@ do not cause major conflicts with pre-existing downstream modifications.
   - New function `git worktree table` (commit [`c60cd5b`][c60cd5b])
 - [`complete-bat-flags`][complete-bat-flags]:
   bat Custom Completions Flags Update
+  - Flags updated and extended based on help message
+    (commit [`d010754`][d010754])
 - [`complete-winget-locale`][complete-winget-locale]:
   WinGet Custom Completions Locale Adaptation
 
@@ -25,6 +27,8 @@ do not cause major conflicts with pre-existing downstream modifications.
 - 14 May 2025
   - `git worktree table` function for **Git** from commit [`c60cd5b`][c60cd5b]
     on branch [`complete-git-functions`][complete-git-functions].
+  - Flags updated and extended based on help message for **bat** from commit
+    [`d010754`][d010754] on branch [`complete-bat-flags`][complete-bat-flags].
 
 ## Sections
 
@@ -53,3 +57,4 @@ You can run nushell scripts in a few different ways.
 [complete-winget-locale]: https://github.com/thekpaul/nu_scripts/tree/complete-winget-locale
 
 [c60cd5b]: https://github.com/thekpaul/nu_scripts/commit/c60cd5bea765a52fd36cd46598bb2b02109e8b63
+[d010754]: https://github.com/thekpaul/nu_scripts/commit/d01075458d7286efa1e196131e597cdc7a664224
