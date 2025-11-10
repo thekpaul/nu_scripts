@@ -821,12 +821,67 @@ export def "git worktree table" [
   --help(-h)            # display the help message for this command
   --verbose(-v)         # show extended annotations and reasons, if available
 ] {
-  if $verbose {
-    ^git worktree list --verbose | to text |
-      parse --regex '(?P<value>\S+)\s+(?P<commit>\w+)\s+(?P<description>\S.*)'
-  } else {
-    ^git worktree list | to text |
-      parse --regex '(?P<value>\S+)\s+(?P<commit>\w+)\s+(?P<description>\S.*)'
+  try {
+    # Acquire baseline Git worktree list, porcelain with NUL-termination
+    ^git worktree list --porcelain -z # complete
+  } catch {|err|
+    # Exit if unable to obtain Git worktree list
+    error make --unspanned { msg: $err.msg }
+  } |   # Baseline Git worktree list from std.out.
+  split row $"(char nul)(char nul)" | # Split at double NUL-termination
+  where not ($it | is-empty) |        # Remove empty entries for cleanliness
+  split column (char nul) |           # Split contents of each list entry
+  each {|x|
+    let cleanup = { split row -n 2 ' ' | last }    # Util. function
+    mut row = { Path: ($x.column1 | do $cleanup) } # Baseline record with Path
+    if ($x.column2 == 'bare') { # Bare repo!
+    # $row = ($row | insert Details "Bare Repository")
+      $row = ($row |
+        merge {
+          Commit: null
+          Branch: null
+          Details: "Bare Repository"
+        }
+      )
+    } else { # Not bare repo!
+      $row = ($row |
+        merge {
+          Commit: (
+            $x.column2 | do $cleanup |
+            if not $verbose { # Short-format commit hash
+              ^git rev-parse --short $in | complete | get stdout | str trim
+            } else { $in }    # Long-format commit hash TODO: Do we need this?
+          )
+          Branch: (
+            let ref = $x.column3 | do $cleanup;
+            if ($ref != 'detached') {
+              let ref_parser = {split row '/' | skip 2 | str join '/'}
+              # Use Nerd Fonts to shorten branch description
+              match ($ref | split row '/' | get 1) {
+                'heads' => $"\u{E725} ($ref | do $ref_parser)"
+                'remotes' => $"\u{F0EE} ($ref | do $ref_parser)"
+                'tags' => $"\u{F02B} ($ref | do $ref_parser)"
+                _ => $ref
+              }
+            } else { $ref }
+          ) # Machine-readable reference
+          # TODO: If possible, convert into shorter (human-readable) ref. format
+        }
+      )
+    }
+    if ("column4" in ($x | columns)) { # Extra details (prune, lock, etc.)
+      $row = ($row |
+        insert Details ( # Additional record field for extra details
+          if $verbose {  # Verbose details (lock "reason", prune "symptom")
+            {($x.column4 | split row -n 2 ' ' | first): ($x.column4 | do $cleanup)}
+          } else {
+            ($x.column4 | split row -n 2 ' ' | first)
+          }
+          # TODO: Possible corner-cases with more than one extra details
+        )
+      )
+    }
+    echo $row
   }
 }
 
