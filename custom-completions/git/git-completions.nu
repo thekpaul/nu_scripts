@@ -821,13 +821,27 @@ export def "git worktree table" [
   --help(-h)            # display the help message for this command
   --verbose(-v)         # show extended annotations and reasons, if available
 ] {
-  try {
+  let PORCELAIN = try {
     # Acquire baseline Git worktree list, porcelain with NUL-termination
-    ^git worktree list --porcelain -z # complete
+    ^git worktree list --porcelain -z
   } catch {|err|
-    # Exit if unable to obtain Git worktree list
-    error make --unspanned { msg: $err.msg }
-  } |   # Baseline Git worktree list from std.out.
+    let ext_err = $err.json | from json
+    let span_start = (view files | last | get start)
+    error make { # Exit if unable to obtain Git worktree list
+      msg: $ext_err.msg
+      code: $ext_err.code
+      label: {
+        text: ($ext_err | get labels.0.text)
+        span: {
+          start: $span_start
+          end: ($span_start + 3) # Hard-coded since external command is `git`
+        }
+      }
+      help: $ext_err.help
+    # inner: [ $ext_err ] # Reveals function internals; temporarily disabled
+    }
+  }
+  $PORCELAIN |                        # Baseline Git worktree list from stdout
   split row $"(char nul)(char nul)" | # Split at double NUL-termination
   where not ($it | is-empty) |        # Remove empty entries for cleanliness
   split column (char nul) 'worktree' 'head' 'branch' 'details' |
