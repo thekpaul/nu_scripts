@@ -44,6 +44,14 @@ git sparse-checkout set <subset>
 This allows using only the necessary directories and files locally without any
 disruptions from following the upstream mono-repo.
 
+### Changelog
+
+- 24 Dec 2025: New function `git worktree table` to
+  [custom completions script for Git][git-complete] that uses a tabular data
+  structure to list Git worktrees.
+  The motivation of this function is the `nu-complete worktree list` helper
+  function used for worktree auto-completion.
+
 ## Sections
 
 - [aliases](./aliases/)
@@ -73,3 +81,5 @@ You can run nushell scripts in a few different ways.
 [up_PR]: https://github.com/nushell/nu_scripts/compare
 [fork]: https://github.com/thekpaul/nu_scripts
 [sparse-checkout]: https://git-scm.com/docs/git-sparse-checkout
+
+[git-complete]: ./custom-completions/git/git-completions.nu

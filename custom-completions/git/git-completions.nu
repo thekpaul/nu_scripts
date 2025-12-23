@@ -816,6 +816,92 @@ def "nu-complete worktree list" [] {
   ^git worktree list | to text | parse --regex '(?P<value>\S+)\s+(?P<commit>\w+)\s+(?P<description>\S.*)'
 }
 
+# organise details of each worktree in Nushell table format
+export def "git worktree table" [
+  --help(-h)            # display the help message for this command
+  --verbose(-v)         # show extended annotations and reasons, if available
+] {
+  let PORCELAIN = try {
+    # Acquire baseline Git worktree list, porcelain with NUL-termination
+    ^git worktree list --porcelain -z
+  } catch {|err|
+    let ext_err = $err.json | from json
+    let span_start = (view files | last | get start)
+    error make { # Exit if unable to obtain Git worktree list
+      msg: $ext_err.msg
+      code: $ext_err.code
+      label: {
+        text: ($ext_err | get labels.0.text)
+        span: {
+          start: $span_start
+          end: ($span_start + 3) # Hard-coded since external command is `git`
+        }
+      }
+      help: $ext_err.help
+    # inner: [ $ext_err ] # Reveals function internals; temporarily disabled
+    }
+  }
+  let max_len = ( # Maximum commit hash length, if not verbose
+    ^git log --all --pretty=%h | lines   # All short commit hashes
+    | each {|| str length} | sort | last # Find longest length
+  )
+  $PORCELAIN                          # Baseline Git worktree list from stdout
+  | split row $"(char nul)(char nul)" # Split at double NUL-termination
+  | where not ($it | is-empty)        # Remove empty entries for cleanliness
+  | split column (char nul) 'worktree' 'head' 'branch' 'details'
+  | each {|x|
+    let cleanup = { split row -n 2 ' ' | last }    # Util. function
+    mut row = { Path: ($x.worktree | do $cleanup) } # Baseline record with Path
+    if ($x.head == 'bare') { # Bare repo!
+      $row = ($row |
+        merge {
+          Commit: null
+          Branch: null
+          Details: "Bare Repository"
+        }
+      )
+    } else { # Not bare repo!
+      $row = ($row |
+        merge {
+          Commit: (
+            $x.head | do $cleanup
+            | if not $verbose { # Short-format commit hash
+              str substring ..($max_len - 1)
+            } else { $in }    # Long-format commit hash TODO: Do we need this?
+          )
+          Branch: (
+            let ref = $x.branch | do $cleanup;
+            if ($ref != 'detached') {
+              let ref_parser = {split row '/' | skip 2 | str join '/'}
+              # Use Nerd Fonts to shorten branch description
+              match ($ref | split row '/' | get 1) {
+                'heads' => $"\u{E725} ($ref | do $ref_parser)"
+                'remotes' => $"\u{F0EE} ($ref | do $ref_parser)"
+                'tags' => $"\u{F02B} ($ref | do $ref_parser)"
+                _ => $ref
+              }
+            } else { $ref }
+          ) # Machine-readable reference
+          # TODO: If possible, convert into shorter (human-readable) ref. format
+        }
+      )
+    }
+    if ("details" in ($x | columns)) { # Extra details (prune, lock, etc.)
+      $row = ($row |
+        insert Details ( # Additional record field for extra details
+          if $verbose {  # Verbose details (lock "reason", prune "symptom")
+            {($x.details | split row -n 2 ' ' | first): ($x.details | do $cleanup)}
+          } else {
+            ($x.details | split row -n 2 ' ' | first)
+          }
+          # TODO: Possible corner-cases with more than one extra details
+        )
+      )
+    }
+    echo $row
+  }
+}
+
 # prevent a working tree from being pruned
 export extern "git worktree lock" [
   worktree: string@"nu-complete worktree list"
