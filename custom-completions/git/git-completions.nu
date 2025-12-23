@@ -842,18 +842,17 @@ export def "git worktree table" [
     }
   }
   let max_len = ( # Maximum commit hash length, if not verbose
-    ^git log --all --pretty=%h | lines | # All short commit hashes
-    each {|| str length} | sort | last   # Find longest length
-  );
-  $PORCELAIN |                        # Baseline Git worktree list from stdout
-  split row $"(char nul)(char nul)" | # Split at double NUL-termination
-  where not ($it | is-empty) |        # Remove empty entries for cleanliness
-  split column (char nul) 'worktree' 'head' 'branch' 'details' |
-  each {|x|
+    ^git log --all --pretty=%h | lines   # All short commit hashes
+    | each {|| str length} | sort | last # Find longest length
+  )
+  $PORCELAIN                          # Baseline Git worktree list from stdout
+  | split row $"(char nul)(char nul)" # Split at double NUL-termination
+  | where not ($it | is-empty)        # Remove empty entries for cleanliness
+  | split column (char nul) 'worktree' 'head' 'branch' 'details'
+  | each {|x|
     let cleanup = { split row -n 2 ' ' | last }    # Util. function
     mut row = { Path: ($x.worktree | do $cleanup) } # Baseline record with Path
     if ($x.head == 'bare') { # Bare repo!
-    # $row = ($row | insert Details "Bare Repository")
       $row = ($row |
         merge {
           Commit: null
@@ -865,8 +864,8 @@ export def "git worktree table" [
       $row = ($row |
         merge {
           Commit: (
-            $x.head | do $cleanup |
-            if not $verbose { # Short-format commit hash
+            $x.head | do $cleanup
+            | if not $verbose { # Short-format commit hash
               str substring ..($max_len - 1)
             } else { $in }    # Long-format commit hash TODO: Do we need this?
           )
