@@ -841,6 +841,10 @@ export def "git worktree table" [
     # inner: [ $ext_err ] # Reveals function internals; temporarily disabled
     }
   }
+  let max_len = ( # Maximum commit hash length, if not verbose
+    ^git log --all --pretty=%h | lines | # All short commit hashes
+    each {|| str length} | sort | last   # Find longest length
+  );
   $PORCELAIN |                        # Baseline Git worktree list from stdout
   split row $"(char nul)(char nul)" | # Split at double NUL-termination
   where not ($it | is-empty) |        # Remove empty entries for cleanliness
@@ -863,7 +867,7 @@ export def "git worktree table" [
           Commit: (
             $x.head | do $cleanup |
             if not $verbose { # Short-format commit hash
-              ^git rev-parse --short $in | complete | get stdout | str trim
+              str substring ..($max_len - 1)
             } else { $in }    # Long-format commit hash TODO: Do we need this?
           )
           Branch: (
