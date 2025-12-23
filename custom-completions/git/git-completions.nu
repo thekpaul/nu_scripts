@@ -830,11 +830,11 @@ export def "git worktree table" [
   } |   # Baseline Git worktree list from std.out.
   split row $"(char nul)(char nul)" | # Split at double NUL-termination
   where not ($it | is-empty) |        # Remove empty entries for cleanliness
-  split column (char nul) |           # Split contents of each list entry
+  split column (char nul) 'worktree' 'head' 'branch' 'details' |
   each {|x|
     let cleanup = { split row -n 2 ' ' | last }    # Util. function
-    mut row = { Path: ($x.column1 | do $cleanup) } # Baseline record with Path
-    if ($x.column2 == 'bare') { # Bare repo!
+    mut row = { Path: ($x.worktree | do $cleanup) } # Baseline record with Path
+    if ($x.head == 'bare') { # Bare repo!
     # $row = ($row | insert Details "Bare Repository")
       $row = ($row |
         merge {
@@ -847,13 +847,13 @@ export def "git worktree table" [
       $row = ($row |
         merge {
           Commit: (
-            $x.column2 | do $cleanup |
+            $x.head | do $cleanup |
             if not $verbose { # Short-format commit hash
               ^git rev-parse --short $in | complete | get stdout | str trim
             } else { $in }    # Long-format commit hash TODO: Do we need this?
           )
           Branch: (
-            let ref = $x.column3 | do $cleanup;
+            let ref = $x.branch | do $cleanup;
             if ($ref != 'detached') {
               let ref_parser = {split row '/' | skip 2 | str join '/'}
               # Use Nerd Fonts to shorten branch description
@@ -869,13 +869,13 @@ export def "git worktree table" [
         }
       )
     }
-    if ("column4" in ($x | columns)) { # Extra details (prune, lock, etc.)
+    if ("details" in ($x | columns)) { # Extra details (prune, lock, etc.)
       $row = ($row |
         insert Details ( # Additional record field for extra details
           if $verbose {  # Verbose details (lock "reason", prune "symptom")
-            {($x.column4 | split row -n 2 ' ' | first): ($x.column4 | do $cleanup)}
+            {($x.details | split row -n 2 ' ' | first): ($x.details | do $cleanup)}
           } else {
-            ($x.column4 | split row -n 2 ' ' | first)
+            ($x.details | split row -n 2 ' ' | first)
           }
           # TODO: Possible corner-cases with more than one extra details
         )
